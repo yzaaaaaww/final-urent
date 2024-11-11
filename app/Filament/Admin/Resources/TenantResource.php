@@ -7,6 +7,7 @@ use App\Filament\Admin\Resources\TenantResource\RelationManagers;
 use App\Filament\Admin\Resources\TenantResource\Widgets\TenantsRevenue;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\SensorData;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
@@ -72,29 +73,6 @@ class TenantResource extends Resource
                             Forms\Components\TextInput::make('lease_term')
                                 ->label('Lease Term')
                                 ->disabled(),
-                                Forms\Components\TextInput::make('water_rate')
-                                ->label('Water Rate')
-                                ->prefix('₱')
-                                ->minValue(0)
-                                ->numeric()
-                                ->inputMode('decimal')
-                                ->live()
-                                ->afterStateUpdated(function ($state, $set, $get) {
-                                    $consumption = $get('water_consumption') ?? 0;
-                                    $bill = floatval($state) * floatval($consumption);
-                                    $set('water_bill', number_format($bill, 2, '.', ''));
-                                }),
-                            Forms\Components\TextInput::make('water_consumption')
-                                ->label('Water Consumption')
-                                ->numeric()
-                                ->inputMode('decimal')
-                                ->disabled(),
-                            Forms\Components\TextInput::make('water_bill')
-                                ->label('Water Bill')
-                                ->prefix('₱')
-                                ->numeric()
-                                ->inputMode('decimal')
-                                ->readOnly(),
                         ])->columns(3),
                 ])->columnSpan([
                     'sm' => 3,
@@ -319,6 +297,111 @@ class TenantResource extends Resource
                     ->label('Active'),
             ])
             ->actions([
+                Tables\Actions\Action::make('waterBills')
+                    ->label('Water Bills')
+                    ->color('primary')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')
+                            ->label('From')
+                            ->native(false)
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, $get, $record) {
+                                if ($get('to')) {
+                                    $totalConsumption = SensorData::query()
+                                        ->where('tenant_id', $record->tenant_id)
+                                        ->whereBetween('created_at', [
+                                            Carbon::parse($state)->startOfDay(),
+                                            Carbon::parse($get('to'))->endOfDay()
+                                        ])
+                                        ->get()
+                                        ->sum('consumption');
+                                    
+                                    $set('water_consumption', number_format($totalConsumption, 2));
+                                    
+                                    // Recalculate water bill if rate exists
+                                    if ($get('water_rate')) {
+                                        $bill = floatval($get('water_rate')) * floatval($totalConsumption);
+                                        $set('water_bill', number_format($bill, 2, '.', ''));
+                                    }
+                                }
+                            }),
+                        Forms\Components\DatePicker::make('to')
+                            ->label('To')
+                            ->native(false)
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, $get, $record) {
+                                if ($get('from')) {
+                                    $totalConsumption = SensorData::query()
+                                        ->where('tenant_id', $record->tenant_id)
+                                        ->whereBetween('created_at', [
+                                            Carbon::parse($get('from'))->startOfDay(),
+                                            Carbon::parse($state)->endOfDay()
+                                        ])
+                                        ->get()
+                                        ->sum('consumption');
+                                    
+                                    $set('water_consumption', number_format($totalConsumption, 2));
+                                    
+                                    // Recalculate water bill if rate exists
+                                    if ($get('water_rate')) {
+                                        $bill = floatval($get('water_rate')) * floatval($totalConsumption);
+                                        $set('water_bill', number_format($bill, 2, '.', ''));
+                                    }
+                                }
+                            }),
+                        Forms\Components\TextInput::make('water_rate')
+                            ->label('Water Rate')
+                            ->prefix('₱')
+                            ->numeric()
+                            ->inputMode('decimal')
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                if ($get('water_consumption')) {
+                                    $bill = floatval($state) * floatval($get('water_consumption'));
+                                    $set('water_bill', number_format($bill, 2, '.', ''));
+                                }
+                            }),
+                        Forms\Components\TextInput::make('water_consumption')
+                            ->label('Water Consumption')
+                            ->numeric()
+                            ->inputMode('decimal')
+                            ->readOnly(),
+                        Forms\Components\TextInput::make('water_bill')
+                            ->label('Water Bill')
+                            ->prefix('₱')
+                            ->numeric()
+                            ->inputMode('decimal')
+                            ->readOnly(),
+                    ])
+                    ->action(function (Tenant $record, array $data) {
+                        $totalConsumption = SensorData::query()
+                            ->where('tenant_id', $record->tenant_id)
+                            ->whereBetween('created_at', [
+                                Carbon::parse($data['from'])->startOfDay(),
+                                Carbon::parse($data['to'])->endOfDay()
+                            ])
+                            ->get()
+                            ->sum('consumption');
+
+                        // Calculate water bill
+                        $waterBill = $totalConsumption * $data['water_rate'];
+
+                        // Update tenant record
+                        $record->update([
+                            'water_consumption' => $totalConsumption,
+                            'water_rate' => $data['water_rate'],
+                            'water_bill' => $waterBill,
+                        ]);
+
+                        Notification::make()
+                            ->title('Water Bill Updated')
+                            ->success()
+                            ->body("Total consumption: {$totalConsumption} units\nWater Bill: ₱{$waterBill}")
+                            ->send();
+                    }),
                 Tables\Actions\Action::make('updateBills')
                     ->label('Monthly Bills')
                     ->icon('heroicon-m-currency-dollar')

@@ -65,4 +65,9 @@ class Tenant extends Model
     {
         return $this->hasMany(Report::class);
     }
+
+    public function waterSensorData()
+    {
+        return $this->hasMany(WaterSensorData::class);
+    }
 }
