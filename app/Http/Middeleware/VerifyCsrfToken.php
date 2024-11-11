@@ -15,5 +15,7 @@ class VerifyCsrfToken extends Middleware
         'sensor-data',
         'sensor/data/store',
         'sensor/data/*',
+        'sensor/electric/data/store',
+        'sensor/electric/data/*',
     ];
 } 
