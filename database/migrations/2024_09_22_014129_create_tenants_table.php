@@ -33,7 +33,9 @@ return new class extends Migration
             $table->decimal('rent_price', 10, 2)->nullable();
             $table->decimal('deposit', 10, 2)->nullable();
             $table->decimal('monthly_payment', 10, 2)->nullable();
-            $table->string('payment_status')->nullable();
+            $table->string('rent_payment_status')->nullable();
+            $table->string('water_payment_status')->nullable();
+            $table->string('electric_payment_status')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
             $table->timestamps();

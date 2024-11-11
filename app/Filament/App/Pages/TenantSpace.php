@@ -54,55 +54,74 @@ class TenantSpace extends Page implements HasForms, HasTable
                     ->openUrlInNewTab()
             ])
             ->columns([
-                Tables\Columns\TextColumn::make('unit.name')
-                    ->label('Unit')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('unit.unit_number')
-                    ->label('Unit Number')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('lease_start')
-                    ->label('Lease Start')
-                    ->date('F j, Y')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('lease_end')
-                    ->label('Lease End')
-                    ->date('F j, Y')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('tenant.name')
-                    ->searchable()
+                    ->description(fn($record) => $record->unit->name)   
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('owner.name')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('lease_start')
+                    ->dateTime('F j, Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('lease_end')
+                    ->dateTime('F j, Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('lease_due')
+                    ->dateTime('F j, Y')
+                    ->sortable()
+                    ->disabled()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('lease_term')
+                    ->label('Lease Term')
+                    ->formatStateUsing(fn($state) => $state . ' Months')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('lease_status')
-                    ->extraAttributes(['class' => 'capitalize'])
-                    ->searchable()
+                    ->label('Lease Status')
                     ->badge()
+                    ->extraAttributes(['class' => 'capitalize'])
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('monthly_payment')
-                    ->label('Monthly Payment')
-                    ->prefix('₱')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
-                Tables\Columns\TextColumn::make('payment_status')
-                    ->label('Payment Status')
+                    ->label('Rent Monthly Payment')
+                    ->description(fn($record) => $record->rent_payment_status ?? '')
                     ->extraAttributes(['class' => 'capitalize'])
-                    ->badge()
-                    ->searchable()
-                    ->sortable()
+                    ->prefix('₱')
+                    ->numeric()
                     ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('water_bill')
+                    ->label('Water Bill')
+                    ->description(fn($record) => $record->water_payment_status ?? '')
+                    ->extraAttributes(['class' => 'capitalize'])
+                    ->prefix('₱')
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('electric_bill')
+                    ->label('Electric Bill')
+                    ->description(fn($record) => $record->electric_payment_status ?? '')
+                    ->extraAttributes(['class' => 'capitalize'])
+                    ->prefix('₱')
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime('F j, Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
                 Tables\Actions\Action::make('payBills')
                     ->label('Bills to Pay')
                     ->button()
                     ->action(fn($record) => $this->payWithGCash($record))
-                    ->visible(fn($record) => $record->payment_status !== 'Paid' && $record->monthly_payment > 0),
+                    ->visible(fn($record) => $record->rent_payment_status !== 'Paid' && $record->monthly_payment > 0 || $record->water_payment_status !== 'Paid' && $record->water_bill > 0 || $record->electric_payment_status !== 'Paid' && $record->electric_bill > 0),
                 Tables\Actions\CreateAction::make('create')
                     ->label('Report Issue')
                     ->disableCreateAnother()
@@ -133,14 +152,17 @@ class TenantSpace extends Page implements HasForms, HasTable
 
     protected function payWithGCash($record)
     {
-        $total = $record->monthly_payment;
-
+        
+        $monthlyRent = $record->monthly_payment;
+        $waterBill = $record->water_bill;
+        $electricBill = $record->electric_bill;
+        $total = $monthlyRent + $waterBill + $electricBill;
         $lineItems = [
             [
                 'currency' => 'PHP',
                 'amount' => $total * 100,
-                'description' => 'Monthly Rent',
-                'name' => 'Monthly Rent',
+                'description' => 'Utility and Rent Bills',
+                'name' => 'Utility and Rent Bills',
                 'quantity' => 1,
             ]
         ];
@@ -205,7 +227,11 @@ class TenantSpace extends Page implements HasForms, HasTable
 
         // Update tenant record
         $tenant->monthly_payment = 0;
-        $tenant->payment_status = 'Paid';
+        $tenant->water_bill = 0;
+        $tenant->electric_bill = 0;
+        $tenant->rent_payment_status = 'Paid';
+        $tenant->water_payment_status = 'Paid';
+        $tenant->electric_payment_status = 'Paid';
         $tenant->save();
 
         // Create a new Payment record

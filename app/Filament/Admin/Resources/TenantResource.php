@@ -230,14 +230,9 @@ class TenantResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('tenant.name')
-                    ->numeric()
+                    ->description(fn($record) => $record->unit->name)   
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('unit.name')
-                    ->numeric()
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('owner.name')
                     ->numeric()
                     ->sortable()
@@ -267,16 +262,25 @@ class TenantResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('monthly_payment')
-                    ->label('Monthly Payment')
+                    ->label('Rent Monthly Payment')
+                    ->description(fn($record) => $record->rent_payment_status ?? '')
+                    ->extraAttributes(['class' => 'capitalize'])
                     ->prefix('₱')
                     ->numeric()
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
-                Tables\Columns\TextColumn::make('payment_status')
-                    ->label('Payment Status')
+                Tables\Columns\TextColumn::make('water_bill')
+                    ->label('Water Bill')
+                    ->description(fn($record) => $record->water_payment_status ?? '')
                     ->extraAttributes(['class' => 'capitalize'])
-                    ->badge()
-                    ->sortable()
+                    ->prefix('₱')
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('electric_bill')
+                    ->label('Electric Bill')
+                    ->description(fn($record) => $record->electric_payment_status ?? '')
+                    ->extraAttributes(['class' => 'capitalize'])
+                    ->prefix('₱')
+                    ->numeric()
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('F j, Y H:i')
@@ -394,6 +398,7 @@ class TenantResource extends Resource
                             'water_consumption' => $totalConsumption,
                             'water_rate' => $data['water_rate'],
                             'water_bill' => $waterBill,
+                            'water_payment_status' => 'unpaid',
                         ]);
 
                         Notification::make()

@@ -28,11 +28,11 @@ class SensorDataController extends Controller
 
             SensorData::create($data);
 
-            $tenant = \App\Models\Tenant::where('tenant_id', $validated['tenant_id'])->first();
-            if ($tenant) {
-                $tenant->water_consumption += $validated['consumption'];
-                $tenant->save();
-            }
+            // $tenant = \App\Models\Tenant::where('tenant_id', $validated['tenant_id'])->first();
+            // if ($tenant) {
+            //     $tenant->water_consumption += $validated['consumption'];
+            //     $tenant->save();
+            // }
 
             return response()->json([
                 'success' => true,
