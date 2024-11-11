@@ -77,8 +77,14 @@ class EditApplication extends EditRecord
                             'lease_end' => Carbon::parse($application->created_at)->addMonths($application->lease_term),
                             'lease_term' => $application->lease_term,
                             'lease_status' => 'active',
-                            'bills' => $application->bills ? json_encode($application->bills) : null,
-                            'monthly_payment' => $application->monthly_payment ? $application->monthly_payment : null,
+                            'water_bill' => $application->water_bill ? $application->water_bill : null,
+                            'electric_bill' => $application->electric_bill ? $application->electric_bill : null,
+                            'water_usage' => $application->water_usage ? $application->water_usage : null,
+                            'electric_usage' => $application->electric_usage ? $application->electric_usage : null,
+                            'rent_price' => $application->rent_price ? $application->rent_price : null,
+                            'deposit' => $application->deposit ? $application->deposit : null,
+                            'monthly_payment' => $application->rent_price ? $application->rent_price : null,
+                            'payment_status' => 'unpaid',
                             'is_active' => true,
                         ]);
 

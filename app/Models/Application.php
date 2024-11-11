@@ -21,6 +21,8 @@ class Application extends Model
         'status',
         'remarks',
         'lease_term',
+        'rent_price',
+        'deposit',
     ];
 
     public function user()

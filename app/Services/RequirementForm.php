@@ -42,6 +42,17 @@ final class RequirementForm
                             ->default($concourseLeaseTerm)
                             ->readOnly()
                             ->suffix('Months'),
+                        Forms\Components\TextInput::make('rent_price')
+                            ->label('Monthly Rent')
+                            ->default(fn($record) => $record->price)
+                            ->readOnly()
+                            ->prefix('₱'),
+                        Forms\Components\TextInput::make('deposit')
+                            ->label('Deposit')
+                            ->default(fn($record) => $record->deposit)
+                            ->readOnly()
+                            ->prefix('₱'),
+
                     ]),
                     Forms\Components\Textarea::make('address')
                         ->label('Permanent Address')

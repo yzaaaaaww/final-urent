@@ -28,6 +28,8 @@ return new class extends Migration
             $table->integer('water_usage')->nullable();
             $table->decimal('electric_bill', 10, 2)->nullable();
             $table->integer('electric_usage')->nullable();
+            $table->decimal('rent_price', 10, 2)->nullable();
+            $table->decimal('deposit', 10, 2)->nullable();
             $table->decimal('monthly_payment', 10, 2)->nullable();
             $table->string('payment_status')->nullable();
             $table->boolean('is_active')->default(true);

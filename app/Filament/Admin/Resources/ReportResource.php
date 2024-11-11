@@ -24,6 +24,11 @@ class ReportResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-exclamation-circle';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form

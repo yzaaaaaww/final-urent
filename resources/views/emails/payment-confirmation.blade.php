@@ -14,8 +14,7 @@
     <p>Details:</p>
     <ul>
         <li>Concourse: {{ $tenant->concourse->name }}</li>
-        <li>Bills: {{ json_encode($tenant->bills) }}</li> 
-        <li>Amount Paid: ₱{{ number_format($tenant->monthly_payment, 2) }}</li>
+        <li>Monthly Payment: ₱{{ number_format($tenant->monthly_payment, 2) }}</li>
         <li>Payment Status:
             <span class="text-green-500">Paid</span>
             <!-- {{ $tenant->payment_status }} -->

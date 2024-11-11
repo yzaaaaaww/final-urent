@@ -31,6 +31,11 @@ class TenantResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -313,7 +318,7 @@ class TenantResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('updateBills')
-                    ->label('Update Bills')
+                    ->label('Monthly Bills')
                     ->icon('heroicon-m-currency-dollar')
                     ->color('primary')
                     ->requiresConfirmation()
@@ -331,46 +336,23 @@ class TenantResource extends Resource
                                 return;
                             }
 
-                            $rentAmount = $record->unit->price ?? 0;
-                            $bills = $record->bills ?? [];
+                            $rentAmount = $record->rent_price ?? 0;
 
-                            $billExists = collect($bills)->contains(function ($bill) use ($leaseDate) {
-                                return isset($bill['name']) && $bill['name'] == 'Monthly Rent' &&
-                                    isset($bill['for_month']) && $bill['for_month'] == $leaseDate->format('Y-m');
-                            });
+                            $record->monthly_payment = $rentAmount;
+                            $record->payment_status = 'unpaid';
+                            $record->save();
 
-                            if (!$billExists) {
-                                $bills[] = [
-                                    'name' => 'Monthly Rent',
-                                    'amount' => $rentAmount,
-                                    'due_date' => $leaseDate->toDateString(),
-                                    'for_month' => $leaseDate->format('Y-m'),
-                                ];
+                            Notification::make()
+                                ->title('Bills Updated')
+                                ->success()
+                                ->send();
 
-                                $record->bills = $bills;
-                                $record->monthly_payment = $rentAmount;
-                                $record->lease_status = 'due';
-                                $record->payment_status = 'unpaid';
-                                $record->save();
-
-                                Notification::make()
-                                    ->title('Bills Updated')
-                                    ->success()
-                                    ->send();
-
-                                $user = User::find($record->tenant_id);
-                                Notification::make()
-                                    ->title('Bills Updated')
-                                    ->body('The bills for your lease period have been updated.')
-                                    ->success()
-                                    ->sendToDatabase($user);
-                            } else {
-                                Notification::make()
-                                    ->title('No Update Needed')
-                                    ->info()
-                                    ->body('The bill for this lease period already exists.')
-                                    ->send();
-                            }
+                            $user = User::find($record->tenant_id);
+                            Notification::make()
+                                ->title('Bills Updated')
+                                ->body('Your monthly payment has been updated.')
+                                ->success()
+                                ->sendToDatabase($user);
                         } else {
                             Notification::make()
                                 ->title('Error')

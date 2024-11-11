@@ -6,7 +6,7 @@ use Filament\Pages\Page;
 
 class ListConcourses extends Page
 {
-    protected static ?string $navigationLabel = 'Units';
+    protected static ?string $navigationLabel = 'Rooms';
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 

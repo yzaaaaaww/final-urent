@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('status')->default('pending');
             $table->integer('lease_term')->nullable();
+            $table->decimal('rent_price', 10, 2)->nullable();
+            $table->decimal('deposit', 10, 2)->nullable();
             $table->string('remarks')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('unit_id')->references('id')->on('units')->onDelete('cascade');

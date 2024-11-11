@@ -21,6 +21,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 use Rupadana\FilamentAnnounce\FilamentAnnouncePlugin;
 use Filament\Navigation\NavigationItem;
+use EightyNine\Reports\ReportsPlugin;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -42,6 +43,13 @@ class AdminPanelProvider extends PanelProvider
                 'danger' => Color::Red,
                 'gray' => Color::Gray,
             ])
+            ->navigationGroups([
+                'Rooms Settings',
+                'Tenants Settings',
+                'Other',
+                'Reports',
+                'Filament Shield'
+                ])
             ->navigationItems([
                 NavigationItem::make('Chat Support')
                     ->icon('heroicon-o-chat-bubble-bottom-center-text')
@@ -90,7 +98,8 @@ class AdminPanelProvider extends PanelProvider
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
                 FilamentApexChartsPlugin::make(),
                 FilamentAnnouncePlugin::make()
-                    ->pollingInterval('30s')
+                    ->pollingInterval('30s'),
+                ReportsPlugin::make()
             ]);
     }
 }

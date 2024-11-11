@@ -20,13 +20,18 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class UnitResource extends Resource
 {
-    protected static ?string $navigationGroup = 'Unit Settings';
+    protected static ?string $navigationGroup = 'Rooms Settings';
 
-    protected static ?string $navigationLabel = 'Units';
+    protected static ?string $navigationLabel = 'Rooms';
 
     protected static ?string $model = Unit::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Form $form): Form
     {

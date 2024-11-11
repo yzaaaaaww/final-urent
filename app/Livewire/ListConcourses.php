@@ -45,6 +45,7 @@ class ListConcourses extends Component implements HasTable, HasForms
                 Tables\Columns\Layout\Stack::make([
                     Tables\Columns\ImageColumn::make('image')
                         ->width('100%')
+
                         ->height('200px')
                         ->defaultImageUrl(
                             fn($record) =>
@@ -60,7 +61,7 @@ class ListConcourses extends Component implements HasTable, HasForms
                         ->badge()
                         ->sortable()
                         ->extraAttributes(['class' => 'capitalize']),
-                    Tables\Columns\TextColumn::make('concourseRate.price')
+                    Tables\Columns\TextColumn::make('price')
                         ->prefix('Monthly Rent ')
                         ->sortable()
                         ->money('PHP'),

@@ -47,13 +47,7 @@ class EditTenant extends EditRecord
             ->success()
             ->icon('heroicon-o-user-circle')
             ->title('Tenant Space Updated')
-            ->body("Your Tenant Space {$record->name} Updated please review it!")
-            ->actions([
-                Action::make('view')
-                    ->label('Mark as read')
-                    ->link()
-                    ->markAsRead(),
-            ]);
+            ->body("Your Tenant Space {$record->name} Updated please review it!");
 
         // Get the selected user's ID
         $selectedUserId = $this->record->user_id;

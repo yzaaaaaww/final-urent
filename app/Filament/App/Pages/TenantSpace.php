@@ -34,7 +34,7 @@ class TenantSpace extends Page implements HasForms, HasTable
     //     ];
     // }
 
-    protected static ?string $title = 'Payments';
+    protected static ?string $title = 'Tenant';
     
     protected static ?string $navigationIcon = 'heroicon-o-home-modern';
 
@@ -134,35 +134,16 @@ class TenantSpace extends Page implements HasForms, HasTable
     protected function payWithGCash($record)
     {
         $total = $record->monthly_payment;
-        $billRecord = $record->bills ?? [];
 
-        // Ensure billRecord is an array before proceeding
-        if (!is_array($billRecord)) {
-            $billRecord = [];
-        }
-
-        $lineItems = [];
-
-        foreach ($billRecord as $bill) {
-            $lineItems[] = [
-                'currency' => 'PHP',
-                'amount' => $bill['amount'] * 100,
-                'description' => $bill['name'],
-                'name' => $bill['name'],
-                'quantity' => 1,
-            ];
-        }
-
-        // If there are no line items, create one for the total amount
-        if (empty($lineItems)) {
-            $lineItems[] = [
+        $lineItems = [
+            [
                 'currency' => 'PHP',
                 'amount' => $total * 100,
                 'description' => 'Monthly Rent',
                 'name' => 'Monthly Rent',
                 'quantity' => 1,
-            ];
-        }
+            ]
+        ];
 
         $data = [
             'data' => [
@@ -219,25 +200,23 @@ class TenantSpace extends Page implements HasForms, HasTable
     {
         $tenant = Tenant::findOrFail($recordId);
 
-        // $this->sendPaymentConfirmationEmail($tenant);
+        // Store the amount paid before resetting
+        $amountPaid = $tenant->monthly_payment;
 
-        $billsBeforePayment = $tenant->bills; // Store the bills before clearing them
-        $amountPaid = $tenant->monthly_payment; // Store the amount paid
-
-        $tenant->bills = [];
+        // Update tenant record
         $tenant->monthly_payment = 0;
         $tenant->payment_status = 'Paid';
         $tenant->save();
 
-        // Create a new Payment record with bills information
+        // Create a new Payment record
         Payment::create([
             'tenant_id' => $tenant->id,
             'unit_number' => $tenant->unit->unit_number,
             'amount' => $amountPaid,
             'payment_type' => 'Monthly Rent',
-            'payment_details' => json_encode($billsBeforePayment), // Use the stored bills
+            'payment_details' => json_encode(['Monthly Rent' => $amountPaid]),
             'payment_method' => 'GCash',
-            'payment_status' => 'Completed',
+            'payment_status' => 'paid',
         ]);
 
         $this->notify('success', 'Payment Successful', 'Your payment has been processed successfully.');

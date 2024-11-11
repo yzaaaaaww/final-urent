@@ -21,10 +21,15 @@ class Tenant extends Model
         'lease_due',
         'lease_term',
         'lease_status',
-        'bills',
+        'water_bill',
+        'water_usage',
+        'electric_bill',
+        'electric_usage',
         'monthly_payment',
         'payment_status',
         'is_active',
+        'rent_price',
+        'deposit',
     ];
 
     protected $casts = [
