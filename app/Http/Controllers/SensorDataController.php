@@ -16,15 +16,23 @@ class SensorDataController extends Controller
                 'flowRate' => 'required|numeric',
                 'totalML' => 'required|numeric',
                 'consumption' => 'nullable|numeric|in:0,1',
+                'tenant_id' => 'required|exists:tenants,tenant_id'
             ]);
 
             $data = [
                 'flow_rate' => $validated['flowRate'],
                 'total_ml' => $validated['totalML'],
                 'consumption' => $validated['consumption'] ?? 0,
+                'tenant_id' => $validated['tenant_id']
             ];
 
             SensorData::create($data);
+
+            $tenant = \App\Models\Tenant::where('tenant_id', $validated['tenant_id'])->first();
+            if ($tenant) {
+                $tenant->water_consumption += $validated['consumption'];
+                $tenant->save();
+            }
 
             return response()->json([
                 'success' => true,

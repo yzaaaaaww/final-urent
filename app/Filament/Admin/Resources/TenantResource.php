@@ -75,6 +75,7 @@ class TenantResource extends Resource
                                 Forms\Components\TextInput::make('water_rate')
                                 ->label('Water Rate')
                                 ->prefix('₱')
+                                ->minValue(0)
                                 ->numeric()
                                 ->inputMode('decimal')
                                 ->live()
