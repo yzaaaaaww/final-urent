@@ -5,7 +5,7 @@ use App\Http\Controllers\TermsController;
 use App\Http\Controllers\PolicyController;
 use App\Filament\App\Pages\TenantSpace;
 use App\Http\Controllers\SensorDataController;
-use App\Http\Controllers\ElectricSensor;
+use App\Http\Controllers\ElectricSensorController;
 
 // Sensor data route - place this BEFORE other routes
 Route::post('/sensor/data/store', [SensorDataController::class, 'store'])
@@ -15,7 +15,7 @@ Route::post('/sensor/data/store', [SensorDataController::class, 'store'])
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 // Electric sensor data route - place this BEFORE other routes
-Route::post('/electric-sensor', [ElectricSensor::class, 'store'])
+Route::post('/sensor/electric/data/store', [ElectricSensorController::class, 'store'])
     ->name('electric-sensor.store')
     ->withoutMiddleware(['web'])
     ->middleware(['api'])

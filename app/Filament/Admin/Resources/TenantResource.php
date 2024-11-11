@@ -7,7 +7,7 @@ use App\Filament\Admin\Resources\TenantResource\RelationManagers;
 use App\Filament\Admin\Resources\TenantResource\Widgets\TenantsRevenue;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Models\SensorData;
+use App\Models\ElectricSensor;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
@@ -301,6 +301,112 @@ class TenantResource extends Resource
                     ->label('Active'),
             ])
             ->actions([
+                Tables\Actions\Action::make('electricBills')
+                    ->label('Electric Bills')
+                    ->color('primary')
+                    ->form([
+                    Forms\Components\DatePicker::make('from')
+                        ->label('From')
+                        ->native(false)
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(function ($state, $set, $get, $record) {
+                            if ($get('to')) {
+                                $totalConsumption = ElectricSensor::query()
+                                    ->where('tenant_id', $record->tenant_id)
+                                    ->whereBetween('created_at', [
+                                        Carbon::parse($state)->startOfDay(),
+                                        Carbon::parse($get('to'))->endOfDay()
+                                    ])
+                                    ->get()
+                                    ->sum('consumption');
+                                
+                                $set('electric_consumption', number_format($totalConsumption, 2));
+                                
+                                // Recalculate electric bill if rate exists
+                                if ($get('electric_rate')) {
+                                    $bill = floatval($get('electric_rate')) * floatval($totalConsumption);
+                                    $set('electric_bill', number_format($bill, 2, '.', ''));
+                                }
+                            }
+                        }),
+                    Forms\Components\DatePicker::make('to')
+                        ->label('To')
+                        ->native(false)
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(function ($state, $set, $get, $record) {
+                            if ($get('from')) {
+                                $totalConsumption = ElectricSensor::query()
+                                    ->where('tenant_id', $record->tenant_id)
+                                    ->whereBetween('created_at', [
+                                        Carbon::parse($get('from'))->startOfDay(),
+                                        Carbon::parse($state)->endOfDay()
+                                    ])
+                                    ->get()
+                                    ->sum('consumption');
+                                
+                                $set('electric_consumption', number_format($totalConsumption, 2));
+                                
+                                // Recalculate electric bill if rate exists
+                                if ($get('electric_rate')) {
+                                    $bill = floatval($get('electric_rate')) * floatval($totalConsumption);
+                                    $set('electric_bill', number_format($bill, 2, '.', ''));
+                                }
+                            }
+                        }),
+                    Forms\Components\TextInput::make('electric_rate')
+                        ->label('Electric Rate')
+                        ->prefix('₱')
+                        ->numeric()
+                        ->inputMode('decimal')
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(function ($state, $set, $get) {
+                            if ($get('electric_consumption')) {
+                                $bill = floatval($state) * floatval($get('electric_consumption'));
+                                $set('electric_bill', number_format($bill, 2, '.', ''));
+                            }
+                        }),
+                    Forms\Components\TextInput::make('electric_consumption')
+                        ->label('Electric Consumption')
+                        ->numeric()
+                        ->inputMode('decimal')
+                        ->readOnly(),
+                    Forms\Components\TextInput::make('electric_bill')
+                        ->label('Electric Bill')
+                        ->prefix('₱')
+                        ->numeric()
+                        ->inputMode('decimal')
+                        ->readOnly(),
+                ])
+                ->action(function (Tenant $record, array $data) {
+                    $totalConsumption = ElectricSensor::query()
+                        ->where('tenant_id', $record->tenant_id)
+                        ->whereBetween('created_at', [
+                            Carbon::parse($data['from'])->startOfDay(),
+                            Carbon::parse($data['to'])->endOfDay()
+                        ])
+                        ->get()
+                        ->sum('consumption');
+
+                    // Calculate water bill
+                    $electricBill = $totalConsumption * $data['electric_rate'];
+
+                    // Update tenant record
+                    $record->update([
+                        'electric_consumption' => $totalConsumption,
+                        'electric_rate' => $data['electric_rate'],
+                        'electric_bill' => $electricBill,
+                        'electric_payment_status' => 'unpaid',
+                    ]);
+
+                    Notification::make()
+                        ->title('Electric Bill Updated')
+                        ->success()
+                        ->body("Total consumption: {$totalConsumption} units\nElectric Bill: ₱{$electricBill}")
+                        ->send();
+                }),
                 Tables\Actions\Action::make('waterBills')
                     ->label('Water Bills')
                     ->color('primary')
@@ -312,7 +418,7 @@ class TenantResource extends Resource
                             ->live()
                             ->afterStateUpdated(function ($state, $set, $get, $record) {
                                 if ($get('to')) {
-                                    $totalConsumption = SensorData::query()
+                                    $totalConsumption = ElectricSensor::query()
                                         ->where('tenant_id', $record->tenant_id)
                                         ->whereBetween('created_at', [
                                             Carbon::parse($state)->startOfDay(),
@@ -337,7 +443,7 @@ class TenantResource extends Resource
                             ->live()
                             ->afterStateUpdated(function ($state, $set, $get, $record) {
                                 if ($get('from')) {
-                                    $totalConsumption = SensorData::query()
+                                    $totalConsumption = ElectricSensor::query()
                                         ->where('tenant_id', $record->tenant_id)
                                         ->whereBetween('created_at', [
                                             Carbon::parse($get('from'))->startOfDay(),
@@ -381,7 +487,7 @@ class TenantResource extends Resource
                             ->readOnly(),
                     ])
                     ->action(function (Tenant $record, array $data) {
-                        $totalConsumption = SensorData::query()
+                        $totalConsumption = ElectricSensor::query()
                             ->where('tenant_id', $record->tenant_id)
                             ->whereBetween('created_at', [
                                 Carbon::parse($data['from'])->startOfDay(),

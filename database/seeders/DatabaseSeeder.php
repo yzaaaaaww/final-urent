@@ -13,6 +13,7 @@ use App\Models\Payment;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use App\Models\ElectricSensor;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -24,10 +25,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(UserSeeder::class);
-        // $this->call(UnitSeeder::class);
-        // $this->call(ApplicationSeeder::class);
-        // $this->call(TenantSeeder::class);
+        $this->call(UnitSeeder::class);
+        $this->call(ApplicationSeeder::class);
+        $this->call(TenantSeeder::class);
         $this->call(RequirementSeeder::class);
-        // $this->call(RevenueSeeder::class);
+        $this->call(ElectricSensorSeeder::class);
+        $this->call(RevenueSeeder::class);
     }
 }
