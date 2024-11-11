@@ -20,6 +20,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 use Rupadana\FilamentAnnounce\FilamentAnnouncePlugin;
+use Filament\Navigation\NavigationItem;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -40,6 +41,12 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
                 'danger' => Color::Red,
                 'gray' => Color::Gray,
+            ])
+            ->navigationItems([
+                NavigationItem::make('Chat Support')
+                    ->icon('heroicon-o-chat-bubble-bottom-center-text')
+                    ->url(fn () => route('chatify'))
+                    ->sort(999),
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')

@@ -169,7 +169,7 @@ class TenantSpace extends Page implements HasForms, HasTable
                 'attributes' => [
                     'line_items' => $lineItems,
                     'amount_total' => $total * 100,
-                    'payment_method_types' => ['gcash','paymaya'],
+                    'payment_method_types' => ['gcash'],
                     'success_url' => route('filament.app.pages.tenant-space.payment-success', ['record' => $record->id]),
                     'cancel_url' => route('filament.app.pages.tenant-space.payment-cancel'),
                     'description' => 'Payment for monthly rent',

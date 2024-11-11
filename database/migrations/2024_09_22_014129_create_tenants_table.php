@@ -24,8 +24,11 @@ return new class extends Migration
             $table->date('lease_end')->nullable();
             $table->integer('lease_term')->nullable();
             $table->string('lease_status')->nullable();
-            $table->json('bills')->nullable();
-            $table->integer('monthly_payment')->nullable();
+            $table->decimal('water_bill', 10, 2)->nullable();
+            $table->integer('water_usage')->nullable();
+            $table->decimal('electric_bill', 10, 2)->nullable();
+            $table->integer('electric_usage')->nullable();
+            $table->decimal('monthly_payment', 10, 2)->nullable();
             $table->string('payment_status')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();
