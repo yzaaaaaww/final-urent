@@ -77,7 +77,7 @@ class UserResource extends Resource
                             ->required()
                             ->label('Birth Date')
                             ->native(false),
-                        Forms\Components\DateTimePicker::make('email_verified_at')
+                        Forms\Components\DatePicker::make('email_verified_at')
                             ->label('Email Verified At')
                             ->native(false),
                         Forms\Components\Select::make('roles')

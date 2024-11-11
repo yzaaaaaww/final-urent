@@ -72,28 +72,29 @@ class TenantResource extends Resource
                             Forms\Components\TextInput::make('lease_term')
                                 ->label('Lease Term')
                                 ->disabled(),
+                                Forms\Components\TextInput::make('water_rate')
+                                ->label('Water Rate')
+                                ->prefix('₱')
+                                ->numeric()
+                                ->inputMode('decimal')
+                                ->live()
+                                ->afterStateUpdated(function ($state, $set, $get) {
+                                    $consumption = $get('water_consumption') ?? 0;
+                                    $bill = floatval($state) * floatval($consumption);
+                                    $set('water_bill', number_format($bill, 2, '.', ''));
+                                }),
+                            Forms\Components\TextInput::make('water_consumption')
+                                ->label('Water Consumption')
+                                ->numeric()
+                                ->inputMode('decimal')
+                                ->disabled(),
+                            Forms\Components\TextInput::make('water_bill')
+                                ->label('Water Bill')
+                                ->prefix('₱')
+                                ->numeric()
+                                ->inputMode('decimal')
+                                ->readOnly(),
                         ])->columns(3),
-                    Forms\Components\Section::make('Bills Utility')->description('Add the utility bills for the tenant')->schema([
-                        Repeater::make('bills')
-                            ->schema([
-                                Forms\Components\Grid::make(2)->schema([
-                                    Forms\Components\TextInput::make('name')
-                                        ->label('Name')
-                                        ->required(),
-                                    Forms\Components\TextInput::make('amount')
-                                        ->label('Amount')
-                                        ->prefix('₱')
-                                        ->numeric()
-                                        ->required(),
-                                ])
-                            ])
-                            ->columnSpanFull()
-                            ->live()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $total = collect($state)->sum('amount');
-                                $set('monthly_payment', $total);
-                            })
-                    ])->columns(2),
                 ])->columnSpan([
                     'sm' => 3,
                     'md' => 3,

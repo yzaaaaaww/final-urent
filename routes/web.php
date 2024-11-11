@@ -4,6 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\PolicyController;
 use App\Filament\App\Pages\TenantSpace;
+use App\Http\Controllers\SensorDataController;
+
+// Sensor data route - place this BEFORE other routes
+Route::post('/sensor/data/store', [SensorDataController::class, 'store'])
+    ->name('sensor-data.store')
+    ->withoutMiddleware(['web'])  // Remove web middleware
+    ->middleware(['api'])  // Use api middleware only
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 Route::get('/', function () {
     return view('welcome');

@@ -25,9 +25,11 @@ return new class extends Migration
             $table->integer('lease_term')->nullable();
             $table->string('lease_status')->nullable();
             $table->decimal('water_bill', 10, 2)->nullable();
-            $table->integer('water_usage')->nullable();
+            $table->integer('water_consumption')->nullable();
+            $table->decimal('water_rate', 10, 2)->nullable();
             $table->decimal('electric_bill', 10, 2)->nullable();
-            $table->integer('electric_usage')->nullable();
+            $table->integer('electric_consumption')->nullable();
+            $table->decimal('electric_rate', 10, 2)->nullable();
             $table->decimal('rent_price', 10, 2)->nullable();
             $table->decimal('deposit', 10, 2)->nullable();
             $table->decimal('monthly_payment', 10, 2)->nullable();
