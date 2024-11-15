@@ -17,7 +17,7 @@ class ElectricSensorController extends Controller
             $data = $request->validate([
                 'volts_amperes' => 'required|numeric|min:0',
                 'watts_hours' => 'required|numeric|min:0',
-                'tenant_id' => 'required|exists:tenants,id',
+                'tenant_id' => 'required',
             ]);
 
             // Round the values to 3 decimal places

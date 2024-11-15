@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
+// Rooms in Navigation
 class UnitResource extends Resource
 {
     protected static ?string $navigationGroup = 'Rooms Settings';

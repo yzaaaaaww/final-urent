@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('sensor_data', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tenant_id')->default(2);
+            $table->integer('tenant_id')->default(2);
             $table->float('flow_rate');
             $table->integer('total_ml');
             $table->integer('consumption')->nullable();
-            $table->foreign('tenant_id')->references('id')->on('tenants');
             $table->timestamps();
         });
     }

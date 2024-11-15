@@ -15,14 +15,14 @@ class SensorDataController extends Controller
             $validated = $request->validate([
                 'flowRate' => 'required|numeric',
                 'totalML' => 'required|numeric',
-                'consumption' => 'nullable|numeric|in:0,1',
-                'tenant_id' => 'required|exists:tenants,tenant_id'
+                'consumption' => 'nullable|numeric',
+                'tenant_id' => 'required'
             ]);
 
             $data = [
                 'flow_rate' => $validated['flowRate'],
                 'total_ml' => $validated['totalML'],
-                'consumption' => $validated['consumption'] ?? 0,
+                'consumption' => $validated['consumption'] ?? 1,
                 'tenant_id' => $validated['tenant_id']
             ];
 

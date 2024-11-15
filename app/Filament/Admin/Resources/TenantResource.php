@@ -8,6 +8,8 @@ use App\Filament\Admin\Resources\TenantResource\Widgets\TenantsRevenue;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\ElectricSensor;
+use App\Models\SensorData;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
@@ -418,20 +420,19 @@ class TenantResource extends Resource
                             ->live()
                             ->afterStateUpdated(function ($state, $set, $get, $record) {
                                 if ($get('to')) {
-                                    $totalConsumption = ElectricSensor::query()
+                                    $totalConsumption = SensorData::query()
                                         ->where('tenant_id', $record->tenant_id)
                                         ->whereBetween('created_at', [
                                             Carbon::parse($state)->startOfDay(),
                                             Carbon::parse($get('to'))->endOfDay()
                                         ])
-                                        ->get()
                                         ->sum('consumption');
                                     
                                     $set('water_consumption', number_format($totalConsumption, 2));
                                     
                                     // Recalculate water bill if rate exists
                                     if ($get('water_rate')) {
-                                        $bill = floatval($get('water_rate')) * floatval($totalConsumption);
+                                        $bill = floatval($get('water_rate')) * $totalConsumption;
                                         $set('water_bill', number_format($bill, 2, '.', ''));
                                     }
                                 }
@@ -443,20 +444,19 @@ class TenantResource extends Resource
                             ->live()
                             ->afterStateUpdated(function ($state, $set, $get, $record) {
                                 if ($get('from')) {
-                                    $totalConsumption = ElectricSensor::query()
+                                    $totalConsumption = SensorData::query()
                                         ->where('tenant_id', $record->tenant_id)
                                         ->whereBetween('created_at', [
                                             Carbon::parse($get('from'))->startOfDay(),
                                             Carbon::parse($state)->endOfDay()
                                         ])
-                                        ->get()
                                         ->sum('consumption');
                                     
                                     $set('water_consumption', number_format($totalConsumption, 2));
                                     
                                     // Recalculate water bill if rate exists
                                     if ($get('water_rate')) {
-                                        $bill = floatval($get('water_rate')) * floatval($totalConsumption);
+                                        $bill = floatval($get('water_rate')) * $totalConsumption;
                                         $set('water_bill', number_format($bill, 2, '.', ''));
                                     }
                                 }
@@ -487,13 +487,12 @@ class TenantResource extends Resource
                             ->readOnly(),
                     ])
                     ->action(function (Tenant $record, array $data) {
-                        $totalConsumption = ElectricSensor::query()
+                        $totalConsumption = SensorData::query()
                             ->where('tenant_id', $record->tenant_id)
                             ->whereBetween('created_at', [
                                 Carbon::parse($data['from'])->startOfDay(),
                                 Carbon::parse($data['to'])->endOfDay()
                             ])
-                            ->get()
                             ->sum('consumption');
 
                         // Calculate water bill
@@ -515,7 +514,6 @@ class TenantResource extends Resource
                     }),
                 Tables\Actions\Action::make('updateBills')
                     ->label('Monthly Bills')
-                    ->icon('heroicon-m-currency-dollar')
                     ->color('primary')
                     ->requiresConfirmation()
                     ->action(function (Tenant $record) {
@@ -534,9 +532,19 @@ class TenantResource extends Resource
 
                             $rentAmount = $record->rent_price ?? 0;
 
+                            // Update only the monthly_payment
                             $record->monthly_payment = $rentAmount;
-                            $record->payment_status = 'unpaid';
                             $record->save();
+
+                            // Create a new payment record
+                            // Payment::create([
+                            //     'tenant_id' => $record->tenant_id,
+                            //     'unit_number' => $record->unit_id,
+                            //     'payment_type' => 'rent',
+                            //     'payment_status' => 'unpaid',
+                            //     'payment_method' => 'GCash',
+                            //     'amount' => $rentAmount,
+                            // ]);
 
                             Notification::make()
                                 ->title('Bills Updated')

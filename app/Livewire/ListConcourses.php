@@ -33,6 +33,7 @@ class ListConcourses extends Component implements HasTable, HasForms
         return view('livewire.list-concourses');
     }
 
+    // Table Configuration
     public function table(Table $table): Table
     {
         return $table

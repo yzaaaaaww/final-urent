@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('electric_sensors', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tenant_id')->default(2);
+            $table->integer('tenant_id')->default(2);
             $table->decimal('volts_amperes', 10, 2);
             $table->decimal('watts_hours', 10, 2);
             $table->decimal('consumption')->nullable();
-            $table->foreign('tenant_id')->references('id')->on('tenants');
             $table->timestamps();
         });
     }

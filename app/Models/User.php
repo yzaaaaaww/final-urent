@@ -56,6 +56,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'password',
     ];
 
+    public function tenants()
+    {
+        return $this->hasMany(Tenant::class, 'tenant_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
